@@ -61,6 +61,13 @@ ICMS_RULES_BY_CONCESSIONARIA: dict[str, list[IcmsRangeRule]] = {
         IcmsRangeRule(0, 50, 12.0),
         IcmsRangeRule(50.000001, None, 17.0),
     ],
+    # LIGHT-RJ residencial baixa tensao: 0-50 isento; 51-300 20% (ICMS 18% + FECP 2%);
+    # acima de 300 32% (ICMS 29% + FECP 3%). Refinar quando o parser oficial entrar.
+    "LIGHT-RJ": [
+        IcmsRangeRule(0, 50, 0.0),
+        IcmsRangeRule(50.000001, 300, 20.0),
+        IcmsRangeRule(300.000001, None, 32.0),
+    ],
 }
 
 

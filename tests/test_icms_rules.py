@@ -77,6 +77,16 @@ def test_icms_calculation_attributes_describe_concessionaria_range():
     assert attrs["icms_regra_faixas"][0] == "0.000000 <= kWh <= 90.000000 => 0.00%"
 
 
+def test_icms_light_rj_by_range():
+    v1, source1 = icms.resolve_icms_percent("LIGHT-RJ", 30, 20.0)
+    v2, source2 = icms.resolve_icms_percent("LIGHT-RJ", 150, 20.0)
+    v3, source3 = icms.resolve_icms_percent("LIGHT-RJ", 400, 20.0)
+    assert v1 == pytest.approx(0.0)
+    assert v2 == pytest.approx(20.0)
+    assert v3 == pytest.approx(32.0)
+    assert source1 == source2 == source3 == "regra_faixa_consumo"
+
+
 def test_icms_calculation_attributes_describe_unknown_fallback():
     attrs = icms.build_icms_calculation_attributes(
         concessionaria="CEMIG-D",
