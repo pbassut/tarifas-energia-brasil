@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import ssl
 from dataclasses import asdict
 from datetime import date, datetime, timedelta
 from typing import Any
@@ -84,12 +85,20 @@ _INITIAL_FAILURE_RETRY_INTERVAL = timedelta(minutes=15)
 class TarifasEnergiaBrasilCoordinator(DataUpdateCoordinator[ResultadoCalculo]):
     """Orquestra coleta externa, fallback e calculos da integracao."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        entry: ConfigEntry,
+        aneel_ssl_context: ssl.SSLContext | None = None,
+    ) -> None:
         """Configura o coordinator com estado incremental para quebras."""
 
         self.hass = hass
         self.entry = entry
-        self._aneel_client = AneelClient(async_get_clientsession(hass))
+        self._aneel_client = AneelClient(
+            async_get_clientsession(hass),
+            ssl_context=aneel_ssl_context,
+        )
         self._state_store: Store[dict[str, Any]] = Store(
             hass=hass,
             version=_STATE_STORAGE_VERSION,

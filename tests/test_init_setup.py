@@ -80,9 +80,10 @@ class _FakeCoordinator:
 
     instances: list[_FakeCoordinator] = []
 
-    def __init__(self, hass, entry) -> None:  # noqa: ANN001
+    def __init__(self, hass, entry, aneel_ssl_context=None) -> None:  # noqa: ANN001
         self.hass = hass
         self.entry = entry
+        self.aneel_ssl_context = aneel_ssl_context
         self.started_tracking = False
         self.refreshed = False
         self.first_refresh_called = False
@@ -125,6 +126,9 @@ class _FakeHass:
         task = asyncio.create_task(coro, name=name)
         self.tasks.append(task)
         return task
+
+    async def async_add_executor_job(self, func, *args):  # noqa: ANN001
+        return func(*args)
 
 
 class _FakeEntry:
