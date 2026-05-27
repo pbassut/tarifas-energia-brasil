@@ -15,6 +15,7 @@ from homeassistant.helpers import config_validation as cv
 
 from .const import CONF_HORAS_ATUALIZACAO, DOMAIN, HORAS_ATUALIZACAO_PADRAO, PLATFORMS
 from .coordinator import TarifasEnergiaBrasilCoordinator
+from .ssl_context import build_aneel_ssl_context
 
 _LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
@@ -30,7 +31,12 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Inicializa coordinator e plataformas para a config entry."""
 
-    coordinator = TarifasEnergiaBrasilCoordinator(hass, entry)
+    aneel_ssl_context = await hass.async_add_executor_job(build_aneel_ssl_context)
+    coordinator = TarifasEnergiaBrasilCoordinator(
+        hass,
+        entry,
+        aneel_ssl_context=aneel_ssl_context,
+    )
     await coordinator.async_ensure_state_loaded()
 
     hass.data.setdefault(DOMAIN, {})

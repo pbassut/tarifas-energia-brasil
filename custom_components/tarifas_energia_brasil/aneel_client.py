@@ -10,6 +10,7 @@ import codecs
 import csv
 import json
 import logging
+import ssl
 import time
 import unicodedata
 from collections.abc import Callable
@@ -58,10 +59,20 @@ class AneelClient:
         "70ac08d1-53fc-4ceb-9c22-3a3a2c70e9fa",  # 2024
     )
 
-    def __init__(self, session: aiohttp.ClientSession) -> None:
-        """Inicializa cliente com sessao HTTP externa."""
+    def __init__(
+        self,
+        session: aiohttp.ClientSession,
+        ssl_context: ssl.SSLContext | None = None,
+    ) -> None:
+        """Inicializa cliente com sessao HTTP externa e SSL opcional.
+
+        O `ssl_context` cobre a falha do servidor ANEEL em enviar o
+        intermediario Sectigo no handshake; quando ausente, usa o
+        comportamento padrao da sessao.
+        """
 
         self._session = session
+        self._ssl_context = ssl_context
 
     async def fetch_tarifas(
         self,
@@ -395,7 +406,11 @@ class AneelClient:
             self._format_filters(filters),
         )
         started_at = time.monotonic()
-        async with self._session.get(url, timeout=ANEEL_CSV_TIMEOUT_SECONDS) as response:
+        async with self._session.get(
+            url,
+            timeout=ANEEL_CSV_TIMEOUT_SECONDS,
+            ssl=self._ssl_context,
+        ) as response:
             response.raise_for_status()
             response_headers = getattr(response, "headers", None)
             content_length = response_headers.get("Content-Length") if response_headers else None
@@ -427,6 +442,7 @@ class AneelClient:
             url,
             params=params,
             timeout=ANEEL_JSON_TIMEOUT_SECONDS,
+            ssl=self._ssl_context,
         ) as response:
             response.raise_for_status()
             payload = await response.json(content_type=None)

@@ -686,3 +686,40 @@ def test_parse_fio_b_records_accepts_cpfl_piratining_current_rows():
     assert parsed["branca_bruto_r_kwh_por_posto"]["ponta"] == pytest.approx(0.491421249227)
     assert parsed["vigencia_inicio"] == "2026-01-01"
     assert parsed["vigencia_fim"] == "2026-10-22"
+
+
+def test_aneel_json_request_propagates_ssl_context():
+    """SSL context customizado e passado em cada request JSON."""
+
+    import ssl as _ssl
+
+    ssl_ctx = _ssl.create_default_context()
+    session = _FakeSession(
+        [
+            _FakeResponse(
+                payload={"success": True, "result": {"records": []}},
+            )
+        ]
+    )
+    client = AneelClient(session=session, ssl_context=ssl_ctx)
+
+    asyncio.run(client._request_json("datastore_search", {"resource_id": "x"}))
+
+    assert session.calls[0]["ssl"] is ssl_ctx
+
+
+def test_aneel_client_without_ssl_context_passes_none():
+    """Sem contexto customizado, AneelClient repassa ssl=None (default da sessao)."""
+
+    session = _FakeSession(
+        [
+            _FakeResponse(
+                payload={"success": True, "result": {"records": []}},
+            )
+        ]
+    )
+    client = AneelClient(session=session)
+
+    asyncio.run(client._request_json("datastore_search", {"resource_id": "x"}))
+
+    assert session.calls[0]["ssl"] is None
