@@ -77,6 +77,21 @@ def test_resolve_tarifa_branca_schedule_defaults_cpfl_piratininga():
     assert schedule.ponta_fim.hour == 21
 
 
+def test_resolve_tarifa_branca_schedule_defaults_light_rj():
+    schedule, metadata = tb_time.resolve_tarifa_branca_schedule(
+        {CONF_CONCESSIONARIA: "LIGHT-RJ"}
+    )
+    assert metadata["source"] == "default_concessionaria"
+    assert schedule.ponta_inicio.hour == 18
+    assert schedule.ponta_inicio.minute == 0
+    assert schedule.ponta_fim.hour == 21
+    assert schedule.ponta_fim.minute == 0
+    assert schedule.intermediario_1_inicio.hour == 17
+    assert schedule.intermediario_1_fim.hour == 18
+    assert schedule.intermediario_2_inicio.hour == 21
+    assert schedule.intermediario_2_fim.hour == 22
+
+
 def test_resolve_tarifa_branca_schedule_accepts_override():
     schedule, metadata = tb_time.resolve_tarifa_branca_schedule(
         {
